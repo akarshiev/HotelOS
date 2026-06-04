@@ -1,6 +1,7 @@
 package com.hotelos.shared.entities;
 
 import com.hotelos.shared.enums.OrderStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -23,15 +24,19 @@ public class RoomServiceOrder {
     private String orderNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "guest_id")
+    @JoinColumn(name = "guest_id", insertable = false, updatable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    @JsonIgnore
     private Guest guest;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "room_id")
+    @JoinColumn(name = "room_id", insertable = false, updatable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    @JsonIgnore
     private Room room;
 
+    @Column(name = "guest_id")
     private Long guestId;
 
+    @Column(name = "room_id")
     private Long roomId;
 
     private String roomNumber;

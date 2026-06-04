@@ -2,6 +2,7 @@ package com.hotelos.shared.entities;
 
 import com.hotelos.shared.enums.MaintenancePriority;
 import com.hotelos.shared.enums.MaintenanceStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -26,9 +27,11 @@ public class MaintenanceRequest {
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "room_id")
+    @JoinColumn(name = "room_id", insertable = false, updatable = false)
+    @JsonIgnore
     private Room room;
 
+    @Column(name = "room_id")
     private Long roomId;
 
     private String roomNumber;

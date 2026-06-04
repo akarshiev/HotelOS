@@ -3,6 +3,7 @@ package com.hotelos.roomservice.service;
 import com.hotelos.roomservice.config.RabbitMQConfig;
 import com.hotelos.roomservice.repository.RoomServiceOrderRepository;
 import com.hotelos.shared.dto.CreateOrderRequest;
+import com.hotelos.shared.entities.Guest;
 import com.hotelos.shared.entities.RoomServiceOrder;
 import com.hotelos.shared.enums.OrderStatus;
 import com.hotelos.shared.events.OrderStatusChangedEvent;
@@ -100,6 +101,9 @@ public class RoomOrderService {
     }
 
     private void publishStatusChange(OrderStatus oldStatus, RoomServiceOrder order, String roomNumber) {
+        // Guest name is resolved safely - the guest entity may not exist in this service's database
+        String guestName = resolveGuestName(order);
+        
         OrderStatusChangedEvent event = OrderStatusChangedEvent.builder()
             .orderId(order.getId())
             .orderNumber(order.getOrderNumber())
@@ -109,13 +113,29 @@ public class RoomOrderService {
             .totalAmount(order.getTotalAmount())
             .oldStatus(oldStatus != null ? oldStatus.name() : null)
             .newStatus(order.getStatus().name())
-            .guestName(order.getGuest() != null ? order.getGuest().getFullName() : "Unknown")
+            .guestName(guestName)
             .roomNumber(roomNumber)
             .changedAt(LocalDateTime.now())
             .build();
 
         rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ORDER_STATUS_KEY, event);
         messagingTemplate.convertAndSend("/topic/orders", event);
+    }
+
+    /**
+     * Safely resolves the guest name. The guest entity may not exist in this service's database
+     * (guests are managed by the reception-service), so we handle lazy-loading failures gracefully.
+     */
+    private String resolveGuestName(RoomServiceOrder order) {
+        try {
+            Guest guest = order.getGuest();
+            if (guest != null) {
+                return guest.getFullName();
+            }
+        } catch (Exception e) {
+            log.warn("Could not resolve guest name for guestId {}: {}", order.getGuestId(), e.getMessage());
+        }
+        return "Guest #" + order.getGuestId();
     }
 
     public List<RoomServiceOrder> getAllOrders() {

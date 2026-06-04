@@ -33,12 +33,15 @@ public class MaintenanceService {
     // Priority Queue for maintenance requests (Priority Queue data structure requirement)
     private PriorityQueue<MaintenanceRequest> priorityQueue;
 
-    private void initializePriorityQueue() {
-        priorityQueue = new PriorityQueue<>(
-            Comparator.comparingInt(this::getPriorityOrder)
-                .thenComparing(MaintenanceRequest::getReportedAt)
-        );
-        requestRepository.findActiveOrderByPriority().forEach(priorityQueue::add);
+    private synchronized PriorityQueue<MaintenanceRequest> getPriorityQueue() {
+        if (priorityQueue == null) {
+            priorityQueue = new PriorityQueue<>(
+                Comparator.comparingInt(this::getPriorityOrder)
+                    .thenComparing(MaintenanceRequest::getReportedAt)
+            );
+            requestRepository.findActiveOrderByPriority().forEach(priorityQueue::add);
+        }
+        return priorityQueue;
     }
 
     private int getPriorityOrder(MaintenanceRequest request) {
@@ -66,9 +69,7 @@ public class MaintenanceService {
         maintenanceRequest = requestRepository.save(maintenanceRequest);
 
         // Add to priority queue
-        if (priorityQueue != null) {
-            priorityQueue.add(maintenanceRequest);
-        }
+        getPriorityQueue().add(maintenanceRequest);
 
         // Publish status change event
         publishStatusChange(null, maintenanceRequest);
@@ -87,9 +88,7 @@ public class MaintenanceService {
 
         if (newStatus == MaintenanceStatus.RESOLVED || newStatus == MaintenanceStatus.CLOSED) {
             request.setResolvedAt(LocalDateTime.now());
-            if (priorityQueue != null) {
-                priorityQueue.remove(request);
-            }
+            getPriorityQueue().remove(request);
         }
 
         request = requestRepository.save(request);
@@ -117,17 +116,11 @@ public class MaintenanceService {
     }
 
     public MaintenanceRequest getNextHighPriority() {
-        if (priorityQueue == null) {
-            initializePriorityQueue();
-        }
-        return priorityQueue.peek();
+        return getPriorityQueue().peek();
     }
 
     public MaintenanceRequest processNext() {
-        if (priorityQueue == null) {
-            initializePriorityQueue();
-        }
-        MaintenanceRequest next = priorityQueue.poll();
+        MaintenanceRequest next = getPriorityQueue().poll();
         if (next != null) {
             next.setStatus(MaintenanceStatus.IN_PROGRESS);
             requestRepository.save(next);

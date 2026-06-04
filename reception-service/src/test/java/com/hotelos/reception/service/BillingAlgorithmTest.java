@@ -34,6 +34,7 @@ public class BillingAlgorithmTest {
 
     private Guest guest;
     private Room room;
+    private final LocalDateTime NOW = LocalDateTime.of(2026, 6, 4, 12, 0);
 
     @BeforeEach
     void setUp() {
@@ -41,7 +42,7 @@ public class BillingAlgorithmTest {
         guest.setId(1L);
         guest.setFirstName("John");
         guest.setLastName("Doe");
-        guest.setCheckInTime(LocalDateTime.now().minusDays(2));
+        guest.setCheckInTime(NOW.minusDays(2));
 
         room = new Room();
         room.setId(10L);
@@ -58,7 +59,7 @@ public class BillingAlgorithmTest {
 
         when(orderRepository.findByGuestId(1L)).thenReturn(Collections.singletonList(order));
 
-        BillDTO bill = billingAlgorithm.calculateBill(guest, room, LocalDateTime.now());
+        BillDTO bill = billingAlgorithm.calculateBill(guest, room, NOW);
 
         // 2 nights * 100 = 200 + 50 = 250
         assertEquals(new BigDecimal("250.00"), bill.getTotalAmount());
@@ -69,10 +70,10 @@ public class BillingAlgorithmTest {
 
     @Test
     void calculateBill_ShouldChargeMinimumOneNight_WhenSameDayCheckout() {
-        guest.setCheckInTime(LocalDateTime.now());
+        guest.setCheckInTime(NOW);
         when(orderRepository.findByGuestId(1L)).thenReturn(Collections.emptyList());
 
-        BillDTO bill = billingAlgorithm.calculateBill(guest, room, LocalDateTime.now().plusHours(2));
+        BillDTO bill = billingAlgorithm.calculateBill(guest, room, NOW.plusHours(2));
 
         assertEquals(new BigDecimal("100.00"), bill.getTotalAmount());
         assertEquals(1, bill.getNightsStayed());

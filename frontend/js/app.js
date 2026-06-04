@@ -20,12 +20,21 @@ let activityLog = [];
 // ==========================================
 // API Client
 // ==========================================
+function getAuthHeaders() {
+    const token = localStorage.getItem('hotelos_auth');
+    if (token === 'true') {
+        const encoded = btoa('admin:admin123');
+        return { 'Content-Type': 'application/json', 'Authorization': 'Basic ' + encoded };
+    }
+    return { 'Content-Type': 'application/json' };
+}
+
 const api = {
     async request(service, method, path, body = null) {
         const baseUrl = SERVICES[service] || SERVICES.reception;
         const opts = {
             method,
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAuthHeaders(),
         };
         if (body) opts.body = JSON.stringify(body);
         try {

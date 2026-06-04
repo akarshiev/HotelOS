@@ -1,6 +1,7 @@
 package com.hotelos.shared.entities;
 
 import com.hotelos.shared.enums.TaskStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -19,9 +20,11 @@ public class HousekeepingTask {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "room_id")
+    @JoinColumn(name = "room_id", insertable = false, updatable = false)
+    @JsonIgnore
     private Room room;
 
+    @Column(name = "room_id")
     private Long roomId;
 
     private String roomNumber;

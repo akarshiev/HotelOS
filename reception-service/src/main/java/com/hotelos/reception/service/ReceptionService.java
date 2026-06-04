@@ -124,6 +124,12 @@ public class ReceptionService {
             throw new BadRequestException("Guest is not currently checked in");
         }
 
+        // Check for pending room service orders
+        List<com.hotelos.shared.entities.RoomServiceOrder> pendingOrders = orderRepository.findByGuestIdAndDeliveredAtIsNull(guest.getId());
+        if (!pendingOrders.isEmpty()) {
+            throw new BadRequestException("Cannot check-out guest. There are pending room service orders.");
+        }
+
         Room room = guest.getRoom();
         if (room == null) {
             throw new BadRequestException("No room assigned to this guest");

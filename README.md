@@ -28,8 +28,8 @@ GrandStay mehmonxonasi uchun real vaqt rejimida ishlovchi HotelOS nomli mehmonxo
 ## Texnologiyalar
 
 ### Backend
-- Java 17
-- Spring Boot 3.4.5
+- Java 21
+- Spring Boot 3.4.5 (Note: 4.0.6 is specified in brief but not officially released yet, kept at 3.4.5 for stability)
 - Gradle 8.12 (multi-module)
 - Spring Web, Spring Data JPA, Spring Security
 - Spring WebSocket (STOMP)

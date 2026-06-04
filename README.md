@@ -61,23 +61,28 @@ HotelOS/
 
 ---
 
-## O'rnatish va Ishga Tushirish
+## 🚀 How to Run the Project
 
-> Full setup guide: [docs/SETUP.md](docs/SETUP.md)
+### Prerequisites
 
-### 1. JDK 17 O'rnatish
+| Tool | Version | Purpose |
+|------|---------|---------|
+| **Java** | 17+ | Runtime for all microservices |
+| **PostgreSQL** | 14+ | Database (4 separate databases) |
+| **RabbitMQ** | 3.12+ | Message broker for inter-service communication |
+| **Gradle** | 8.12 (wrapper included) | Build tool |
+| **Python 3** | 3.x | Frontend dev server (optional) |
+
+---
+
+### Step 1: Install & Start PostgreSQL
 
 ```bash
-sudo apt install openjdk-17-jdk
-java -version
-```
-
-### 2. PostgreSQL Sozlash
-
-```bash
+# Ubuntu/Debian
 sudo apt install postgresql postgresql-contrib
+sudo systemctl start postgresql
 
-# Bazalar yaratish
+# Create 4 databases for each microservice
 sudo -u postgres psql -c "CREATE DATABASE hotelos_reception;"
 sudo -u postgres psql -c "CREATE DATABASE hotelos_housekeeping;"
 sudo -u postgres psql -c "CREATE DATABASE hotelos_roomservice;"
@@ -85,42 +90,116 @@ sudo -u postgres psql -c "CREATE DATABASE hotelos_maintenance;"
 sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';"
 ```
 
-### 3. RabbitMQ Sozlash
+> **Note:** The password must be `postgres` (matches `application.yml` configs).
+
+### Step 2: Install & Start RabbitMQ
 
 ```bash
+# Ubuntu/Debian
 sudo apt install rabbitmq-server
 sudo systemctl start rabbitmq-server
+sudo systemctl enable rabbitmq-server  # Optional: auto-start on boot
 ```
 
-### 4. Gradle Build
+> RabbitMQ runs on default port `5672` with guest/guest credentials.
+
+### Step 3: Build the Project
 
 ```bash
+cd HotelOS
 ./gradlew build
 ```
 
-### 5. Servislarni Ishga Tushirish
+> This compiles all modules (shared, reception, housekeeping, room-service, maintenance).
+> Tests will run automatically. To skip tests: `./gradlew build -x test`
+
+### Step 4: Start the Microservices
+
+Open **4 separate terminals** and run each service:
 
 ```bash
 # Terminal 1 - Reception Service (port 8081)
-cd reception-service && ../gradlew bootRun
+cd HotelOS && ./gradlew :reception-service:bootRun
 
 # Terminal 2 - Housekeeping Service (port 8082)
-cd housekeeping-service && ../gradlew bootRun
+cd HotelOS && ./gradlew :housekeeping-service:bootRun
 
 # Terminal 3 - Room Service (port 8083)
-cd room-service && ../gradlew bootRun
+cd HotelOS && ./gradlew :room-service:bootRun
 
 # Terminal 4 - Maintenance Service (port 8084)
-cd maintenance-service && ../gradlew bootRun
+cd HotelOS && ./gradlew :maintenance-service:bootRun
 ```
 
-### 6. Frontend Ishga Tushirish
+On first startup, each service will:
+- Automatically create its database tables via Hibernate `ddl-auto: update`
+- Seed 15 rooms across 3 floors via `DataInitializer`
+- Connect to RabbitMQ for event-driven communication
+
+> **Startup order** doesn't matter — services are independent and can start in any order.
+
+### Step 5: Start the Frontend
 
 ```bash
-cd frontend
+cd HotelOS/frontend
 python3 -m http.server 3000
-# Brauzerda: http://localhost:3000
-# Login: admin / admin123
+```
+
+Open **http://localhost:3000** in your browser.
+- **Login:** `admin` / `admin123`
+
+---
+
+### Verify Everything is Running
+
+```bash
+# Check each service responds
+curl -s -o /dev/null -w 'Reception: %{http_code}\n' http://localhost:8081/api/reception/rooms -u admin:admin123
+curl -s -o /dev/null -w 'Housekeeping: %{http_code}\n' http://localhost:8082/api/housekeeping/tasks -u admin:admin123
+curl -s -o /dev/null -w 'Room-Service: %{http_code}\n' http://localhost:8083/api/room-service/orders -u admin:admin123
+curl -s -o /dev/null -w 'Maintenance: %{http_code}\n' http://localhost:8084/api/maintenance/requests -u admin:admin123
+```
+
+Expected output (all return `200` or `401`):
+```
+Reception: 200
+Housekeeping: 200
+Room-Service: 200
+Maintenance: 200
+```
+
+---
+
+### Quick End-to-End Test
+
+```bash
+# 1. Check-in a guest
+curl -X POST http://localhost:8081/api/reception/checkin \
+  -H "Content-Type: application/json" -u admin:admin123 \
+  -d '{"firstName":"John","lastName":"Doe","email":"john@test.com","roomType":"DOUBLE","preferredFloor":2,"preferLift":true}'
+
+# 2. Create a room service order
+curl -X POST http://localhost:8083/api/room-service/orders \
+  -H "Content-Type: application/json" -u admin:admin123 \
+  -d '{"guestId":1,"roomId":6,"items":"1x Grilled Salmon","totalAmount":25.99}'
+
+# 3. Advance the order to DELIVERED
+curl -X PUT http://localhost:8083/api/room-service/orders/1/status \
+  -H "Content-Type: application/json" -u admin:admin123 \
+  -d '{"status":"DELIVERING"}'
+curl -X PUT http://localhost:8083/api/room-service/orders/1/status \
+  -H "Content-Type: application/json" -u admin:admin123 \
+  -d '{"status":"DELIVERED"}'
+
+# 4. Report a maintenance issue
+curl -X POST http://localhost:8084/api/maintenance/requests \
+  -H "Content-Type: application/json" -u admin:admin123 \
+  -d '{"title":"AC not working","description":"Room 201 AC is not cooling","roomId":6,"priority":"HIGH"}'
+
+# 5. Check-out and view the bill
+curl -X POST http://localhost:8081/api/reception/checkout \
+  -H "Content-Type: application/json" -u admin:admin123 \
+  -d '{"guestId":1}'
 ```
 
 ---

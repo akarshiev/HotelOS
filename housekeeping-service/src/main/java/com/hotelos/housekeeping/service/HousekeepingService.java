@@ -71,13 +71,16 @@ public class HousekeepingService {
             task.setCompletedAt(LocalDateTime.now());
 
             // Publish room status changed event - room is now CLEAN
-            messagingTemplate.convertAndSend("/topic/rooms", RoomStatusChangedEvent.builder()
+            RoomStatusChangedEvent event = RoomStatusChangedEvent.builder()
                 .roomId(task.getRoomId())
                 .roomNumber(task.getRoomNumber() != null ? task.getRoomNumber() : "Unknown")
                 .oldStatus("CLEANING")
                 .newStatus("CLEAN")
                 .changedAt(LocalDateTime.now())
-                .build());
+                .build();
+                
+            rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROOM_STATUS_KEY, event);
+            messagingTemplate.convertAndSend("/topic/rooms", event);
         }
 
         return taskRepository.save(task);
@@ -95,7 +98,20 @@ public class HousekeepingService {
         task.setAssignedStaff(staffName);
         task.setStatus(TaskStatus.IN_PROGRESS);
         task.setStartedAt(LocalDateTime.now());
-        return taskRepository.save(task);
+        task = taskRepository.save(task);
+        
+        RoomStatusChangedEvent event = RoomStatusChangedEvent.builder()
+            .roomId(task.getRoomId())
+            .roomNumber(task.getRoomNumber() != null ? task.getRoomNumber() : "Unknown")
+            .oldStatus("DIRTY")
+            .newStatus("CLEANING")
+            .changedAt(LocalDateTime.now())
+            .build();
+            
+        rabbitTemplate.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROOM_STATUS_KEY, event);
+        messagingTemplate.convertAndSend("/topic/rooms", event);
+        
+        return task;
     }
 
     public List<HousekeepingTask> getAllTasks() {

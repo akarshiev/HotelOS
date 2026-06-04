@@ -4,6 +4,7 @@ import com.hotelos.reception.config.RabbitMQConfig;
 import com.hotelos.reception.repository.GuestRepository;
 import com.hotelos.reception.repository.ReservationRepository;
 import com.hotelos.reception.repository.RoomRepository;
+import com.hotelos.reception.repository.RoomServiceOrderRepository;
 import com.hotelos.shared.dto.BillDTO;
 import com.hotelos.shared.dto.CheckInRequest;
 import com.hotelos.shared.dto.CheckOutRequest;
@@ -38,6 +39,7 @@ public class ReceptionService {
     private final ReservationRepository reservationRepository;
     private final RoomAssignmentAlgorithm roomAssignmentAlgorithm;
     private final BillingAlgorithm billingAlgorithm;
+    private final RoomServiceOrderRepository orderRepository;
     private final RabbitTemplate rabbitTemplate;
     private final SimpMessagingTemplate messagingTemplate;
 

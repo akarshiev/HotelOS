@@ -44,7 +44,8 @@ public class BillingAlgorithm {
         if (nights < 1) nights = 1; // Minimum 1 night charge
 
         // Room charges
-        BigDecimal roomCharges = room.getPricePerNight().multiply(BigDecimal.valueOf(nights));
+        BigDecimal pricePerNight = room.getPricePerNight() != null ? room.getPricePerNight() : BigDecimal.ZERO;
+        BigDecimal roomCharges = pricePerNight.multiply(BigDecimal.valueOf(nights));
 
         // Room service orders
         List<RoomServiceOrder> orders = orderRepository.findByGuestId(guest.getId());
@@ -52,12 +53,13 @@ public class BillingAlgorithm {
         List<BillDTO.OrderItem> orderItems = new ArrayList<>();
 
         for (RoomServiceOrder order : orders) {
-            roomServiceTotal = roomServiceTotal.add(order.getTotalAmount());
+            BigDecimal amount = order.getTotalAmount() != null ? order.getTotalAmount() : BigDecimal.ZERO;
+            roomServiceTotal = roomServiceTotal.add(amount);
             orderItems.add(BillDTO.OrderItem.builder()
                 .orderId(order.getId())
                 .orderNumber(order.getOrderNumber())
-                .items(order.getItems())
-                .amount(order.getTotalAmount())
+                .items(order.getItems() != null ? order.getItems() : "Unknown Items")
+                .amount(amount)
                 .build());
         }
 

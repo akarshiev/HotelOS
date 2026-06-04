@@ -9,6 +9,8 @@ import java.util.List;
 @Repository
 public interface RoomServiceOrderRepository extends JpaRepository<RoomServiceOrder, Long> {
 
+    java.util.Optional<RoomServiceOrder> findByOrderNumber(String orderNumber);
+
     List<RoomServiceOrder> findByGuestId(Long guestId);
 
     List<RoomServiceOrder> findByRoomId(Long roomId);

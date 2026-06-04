@@ -1,0 +1,21 @@
+# Compiled class files
+build/
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+*.swp
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Gradle wrapper (keep jar, ignore the rest of the build)
+!gradle/wrapper/gradle-wrapper.jar

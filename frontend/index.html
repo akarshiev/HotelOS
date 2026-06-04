@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HotelOS - Hotel Management System</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="login-page" class="page active">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-header">
+                    <div class="logo">
+                        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                            <rect width="40" height="40" rx="10" fill="#6366f1"/>
+                            <path d="M10 14h20v14H10z" fill="white" opacity="0.3"/>
+                            <path d="M12 16h16v10H12z" fill="white"/>
+                            <rect x="15" y="19" width="3" height="3" rx="0.5" fill="#6366f1"/>
+                            <rect x="22" y="19" width="3" height="3" rx="0.5" fill="#6366f1"/>
+                        </svg>
+                        <h1>HotelOS</h1>
+                    </div>
+                    <p class="login-subtitle">Hotel Management System</p>
+                </div>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" placeholder="Enter username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" placeholder="Enter password" required>
+                    </div>
+                    <div id="login-error" class="error-message" style="display:none;"></div>
+                    <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+                </form>
+                <p class="login-hint">Default: admin / admin123</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="app" class="app-container" style="display:none;">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+                        <rect width="40" height="40" rx="10" fill="#6366f1"/>
+                        <path d="M10 14h20v14H10z" fill="white" opacity="0.3"/>
+                        <path d="M12 16h16v10H12z" fill="white"/>
+                        <rect x="15" y="19" width="3" height="3" rx="0.5" fill="#6366f1"/>
+                        <rect x="22" y="19" width="3" height="3" rx="0.5" fill="#6366f1"/>
+                    </svg>
+                    <span>HotelOS</span>
+                </div>
+                <button id="sidebar-toggle" class="sidebar-toggle">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12h18M3 6h18M3 18h18"/>
+                    </svg>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" data-page="dashboard" class="nav-item active">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" data-page="rooms" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 21V7a2 2 0 012-2h14a2 2 0 012 2v14"/><path d="M9 21V13h6v8"/>
+                    </svg>
+                    <span>Rooms</span>
+                </a>
+                <a href="#" data-page="checkin" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/>
+                        <path d="M22 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+                    </svg>
+                    <span>Check-In</span>
+                </a>
+                <a href="#" data-page="checkout" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/>
+                        <line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                    <span>Check-Out</span>
+                </a>
+                <a href="#" data-page="housekeeping" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+                    </svg>
+                    <span>Housekeeping</span>
+                </a>
+                <a href="#" data-page="roomservice" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/>
+                        <line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>
+                    </svg>
+                    <span>Room Service</span>
+                </a>
+                <a href="#" data-page="maintenance" class="nav-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>
+                    </svg>
+                    <span>Maintenance</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">A</div>
+                    <span class="user-name">Admin</span>
+                </div>
+                <button id="logout-btn" class="btn-icon" title="Logout">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/>
+                        <line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Page -->
+            <div id="page-dashboard" class="page-content active">
+                <div class="page-header">
+                    <div>
+                        <h2>Dashboard</h2>
+                        <p class="page-subtitle">Real-time hotel overview</p>
+                    </div>
+                    <div class="connection-status" id="ws-status">
+                        <span class="status-dot"></span>
+                        <span>Live</span>
+                    </div>
+                </div>
+                <div class="stats-grid" id="dashboard-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V7a2 2 0 012-2h14a2 2 0 012 2v14"/><path d="M9 21V13h6v8"/></svg></div>
+                        <div class="stat-info"><span class="stat-value" id="stat-total-rooms">0</span><span class="stat-label">Total Rooms</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+                        <div class="stat-info"><span class="stat-value" id="stat-available">0</span><span class="stat-label">Available</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon amber"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
+                        <div class="stat-info"><span class="stat-value" id="stat-occupied">0</span><span class="stat-label">Occupied</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+                        <div class="stat-info"><span class="stat-value" id="stat-dirty">0</span><span class="stat-label">Dirty</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg></div>
+                        <div class="stat-info"><span class="stat-value" id="stat-active-guests">0</span><span class="stat-label">Active Guests</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>
+                        <div class="stat-info"><span class="stat-value" id="stat-maintenance">0</span><span class="stat-label">Maintenance</span></div>
+                    </div>
+                </div>
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div class="card-header"><h3>Room Status</h3></div>
+                        <div class="card-body" id="dashboard-rooms-list">
+                            <p class="empty-state">Loading rooms...</p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3>Recent Activity</h3></div>
+                        <div class="card-body" id="dashboard-activity">
+                            <p class="empty-state">No recent activity</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rooms Page -->
+            <div id="page-rooms" class="page-content">
+                <div class="page-header">
+                    <div>
+                        <h2>Rooms</h2>
+                        <p class="page-subtitle">Manage hotel rooms</p>
+                    </div>
+                    <div class="filter-bar">
+                        <select id="room-filter" class="form-select">
+                            <option value="">All Rooms</option>
+                            <option value="CLEAN">Clean</option>
+                            <option value="OCCUPIED">Occupied</option>
+                            <option value="DIRTY">Dirty</option>
+                            <option value="CLEANING">Cleaning</option>
+                            <option value="OUT_OF_ORDER">Out of Order</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="rooms-grid" id="rooms-grid">
+                    <p class="empty-state">Loading rooms...</p>
+                </div>
+            </div>
+
+            <!-- Check-In Page -->
+            <div id="page-checkin" class="page-content">
+                <div class="page-header">
+                    <div>
+                        <h2>Guest Check-In</h2>
+                        <p class="page-subtitle">Register and assign rooms to new guests</p>
+                    </div>
+                </div>
+                <div class="card form-card">
+                    <form id="checkin-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="ci-firstname">First Name *</label>
+                                <input type="text" id="ci-firstname" required placeholder="John">
+                            </div>
+                            <div class="form-group">
+                                <label for="ci-lastname">Last Name *</label>
+                                <input type="text" id="ci-lastname" required placeholder="Doe">
+                            </div>
+                            <div class="form-group">
+                                <label for="ci-email">Email *</label>
+                                <input type="email" id="ci-email" required placeholder="john@example.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="ci-phone">Phone</label>
+                                <input type="tel" id="ci-phone" placeholder="+1 234 567 890">
+                            </div>
+                            <div class="form-group">
+                                <label for="ci-id">ID Document</label>
+                                <input type="text" id="ci-id" placeholder="Passport / ID Number">
+                            </div>
+                            <div class="form-group">
+                                <label for="ci-roomtype">Room Type *</label>
+                                <select id="ci-roomtype" required>
+                                    <option value="">Select room type</option>
+                                    <option value="SINGLE">Single ($99/night)</option>
+                                    <option value="DOUBLE">Double ($149/night)</option>
+                                    <option value="SUITE">Suite ($249/night)</option>
+                                    <option value="DELUXE">Deluxe ($349/night)</option>
+                                    <option value="PRESIDENTIAL">Presidential ($599/night)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="ci-floor">Preferred Floor</label>
+                                <select id="ci-floor">
+                                    <option value="">No preference</option>
+                                    <option value="1">Floor 1</option>
+                                    <option value="2">Floor 2</option>
+                                    <option value="3">Floor 3</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="ci-lift">Near Lift?</label>
+                                <select id="ci-lift">
+                                    <option value="">No preference</option>
+                                    <option value="true">Yes, near lift</option>
+                                    <option value="false">No preference</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="checkin-error" class="error-message" style="display:none;"></div>
+                        <div id="checkin-success" class="success-message" style="display:none;"></div>
+                        <button type="submit" class="btn btn-primary">Check In Guest</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Check-Out Page -->
+            <div id="page-checkout" class="page-content">
+                <div class="page-header">
+                    <div>
+                        <h2>Guest Check-Out</h2>
+                        <p class="page-subtitle">Process guest departures and billing</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h3>Active Guests</h3></div>
+                    <div class="card-body" id="checkout-guests">
+                        <p class="empty-state">Loading active guests...</p>
+                    </div>
+                </div>
+                <div id="bill-display" class="card" style="display:none;">
+                    <div class="card-header"><h3>Bill Summary</h3></div>
+                    <div class="card-body" id="bill-content"></div>
+                </div>
+            </div>
+
+            <!-- Housekeeping Page -->
+            <div id="page-housekeeping" class="page-content">
+                <div class="page-header">
+                    <div>
+                        <h2>Housekeeping</h2>
+                        <p class="page-subtitle">Cleaning task management</p>
+                    </div>
+                    <div class="filter-bar">
+                        <select id="hk-filter" class="form-select">
+                            <option value="">All Tasks</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="IN_PROGRESS">In Progress</option>
+                            <option value="COMPLETED">Completed</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="tasks-list" id="housekeeping-tasks">
+                    <p class="empty-state">Loading tasks...</p>
+                </div>
+            </div>
+
+            <!-- Room Service Page -->
+            <div id="page-roomservice" class="page-content">
+                <div class="page-header">
+                    <div>
+                        <h2>Room Service</h2>
+                        <p class="page-subtitle">Food & beverage order management</p>
+                    </div>
+                    <button class="btn btn-primary" id="new-order-btn">New Order</button>
+                </div>
+                <div class="orders-grid" id="roomservice-orders">
+                    <p class="empty-state">Loading orders...</p>
+                </div>
+                <!-- New Order Modal -->
+                <div id="order-modal" class="modal" style="display:none;">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>New Room Service Order</h3>
+                            <button class="btn-close" id="close-modal">&times;</button>
+                        </div>
+                        <form id="order-form">
+                            <div class="form-group">
+                                <label for="ord-guestid">Guest ID *</label>
+                                <input type="number" id="ord-guestid" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="ord-roomid">Room ID *</label>
+                                <input type="number" id="ord-roomid" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="ord-items">Items *</label>
+                                <textarea id="ord-items" required placeholder="e.g., 2x Caesar Salad, 1x Grilled Salmon"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="ord-amount">Total Amount ($) *</label>
+                                <input type="number" id="ord-amount" step="0.01" min="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="ord-notes">Notes</label>
+                                <textarea id="ord-notes" placeholder="Special instructions..."></textarea>
+                            </div>
+                            <div id="order-error" class="error-message" style="display:none;"></div>
+                            <div id="order-success" class="success-message" style="display:none;"></div>
+                            <button type="submit" class="btn btn-primary btn-full">Place Order</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Maintenance Page -->
+            <div id="page-maintenance" class="page-content">
+                <div class="page-header">
+                    <div>
+                        <h2>Maintenance</h2>
+                        <p class="page-subtitle">Issue tracking & repair management</p>
+                    </div>
+                    <button class="btn btn-primary" id="new-issue-btn">Report Issue</button>
+                </div>
+                <div class="maintenance-list" id="maintenance-issues">
+                    <p class="empty-state">Loading issues...</p>
+                </div>
+                <!-- New Issue Modal -->
+                <div id="issue-modal" class="modal" style="display:none;">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Report Maintenance Issue</h3>
+                            <button class="btn-close" id="close-issue-modal">&times;</button>
+                        </div>
+                        <form id="issue-form">
+                            <div class="form-group">
+                                <label for="iss-title">Title *</label>
+                                <input type="text" id="iss-title" required placeholder="Brief description of the issue">
+                            </div>
+                            <div class="form-group">
+                                <label for="iss-desc">Description</label>
+                                <textarea id="iss-desc" placeholder="Detailed description..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="iss-roomid">Room ID *</label>
+                                <input type="number" id="iss-roomid" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="iss-priority">Priority *</label>
+                                <select id="iss-priority" required>
+                                    <option value="LOW">Low</option>
+                                    <option value="NORMAL" selected>Normal</option>
+                                    <option value="HIGH">High</option>
+                                    <option value="CRITICAL">Critical</option>
+                                </select>
+                            </div>
+                            <div id="issue-error" class="error-message" style="display:none;"></div>
+                            <div id="issue-success" class="success-message" style="display:none;"></div>
+                            <button type="submit" class="btn btn-primary btn-full">Submit Issue</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/dashboard-charts.js"></script>
+</body>
+</html>

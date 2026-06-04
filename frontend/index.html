@@ -17,11 +17,11 @@
                 <div class="login-header">
                     <div class="logo">
                         <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                            <rect width="40" height="40" rx="10" fill="#6366f1"/>
-                            <path d="M10 14h20v14H10z" fill="white" opacity="0.3"/>
-                            <path d="M12 16h16v10H12z" fill="white"/>
-                            <rect x="15" y="19" width="3" height="3" rx="0.5" fill="#6366f1"/>
-                            <rect x="22" y="19" width="3" height="3" rx="0.5" fill="#6366f1"/>
+                            <rect width="40" height="40" rx="10" fill="#ffffff"/>
+                            <path d="M10 14h20v14H10z" fill="#000000" opacity="0.2"/>
+                            <path d="M12 16h16v10H12z" fill="#000000"/>
+                            <rect x="15" y="19" width="3" height="3" rx="0.5" fill="#ffffff"/>
+                            <rect x="22" y="19" width="3" height="3" rx="0.5" fill="#ffffff"/>
                         </svg>
                         <h1>HotelOS</h1>
                     </div>
@@ -51,11 +51,11 @@
             <div class="sidebar-header">
                 <div class="logo">
                     <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
-                        <rect width="40" height="40" rx="10" fill="#6366f1"/>
-                        <path d="M10 14h20v14H10z" fill="white" opacity="0.3"/>
-                        <path d="M12 16h16v10H12z" fill="white"/>
-                        <rect x="15" y="19" width="3" height="3" rx="0.5" fill="#6366f1"/>
-                        <rect x="22" y="19" width="3" height="3" rx="0.5" fill="#6366f1"/>
+                        <rect width="40" height="40" rx="10" fill="#ffffff"/>
+                        <path d="M10 14h20v14H10z" fill="#000000" opacity="0.2"/>
+                        <path d="M12 16h16v10H12z" fill="#000000"/>
+                        <rect x="15" y="19" width="3" height="3" rx="0.5" fill="#ffffff"/>
+                        <rect x="22" y="19" width="3" height="3" rx="0.5" fill="#ffffff"/>
                     </svg>
                     <span>HotelOS</span>
                 </div>
@@ -127,6 +127,13 @@
             </div>
         </aside>
 
+        <!-- Mobile Menu Button -->
+        <button id="mobile-menu-btn" class="mobile-menu-btn">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12h18M3 6h18M3 18h18"/>
+            </svg>
+        </button>
+
         <!-- Main Content -->
         <main class="main-content">
             <!-- Dashboard Page -->
@@ -143,27 +150,27 @@
                 </div>
                 <div class="stats-grid" id="dashboard-stats">
                     <div class="stat-card">
-                        <div class="stat-icon blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V7a2 2 0 012-2h14a2 2 0 012 2v14"/><path d="M9 21V13h6v8"/></svg></div>
+                        <div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V7a2 2 0 012-2h14a2 2 0 012 2v14"/><path d="M9 21V13h6v8"/></svg></div>
                         <div class="stat-info"><span class="stat-value" id="stat-total-rooms">0</span><span class="stat-label">Total Rooms</span></div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon green"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+                        <div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
                         <div class="stat-info"><span class="stat-value" id="stat-available">0</span><span class="stat-label">Available</span></div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon amber"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
+                        <div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
                         <div class="stat-info"><span class="stat-value" id="stat-occupied">0</span><span class="stat-label">Occupied</span></div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon red"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+                        <div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
                         <div class="stat-info"><span class="stat-value" id="stat-dirty">0</span><span class="stat-label">Dirty</span></div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon purple"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg></div>
+                        <div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg></div>
                         <div class="stat-info"><span class="stat-value" id="stat-active-guests">0</span><span class="stat-label">Active Guests</span></div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon orange"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>
+                        <div class="stat-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div>
                         <div class="stat-info"><span class="stat-value" id="stat-maintenance">0</span><span class="stat-label">Maintenance</span></div>
                     </div>
                 </div>

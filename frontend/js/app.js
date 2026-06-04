@@ -2,13 +2,19 @@
    HotelOS - Frontend Application Logic
    ========================================== */
 
+// ==========================================
+// API Configuration (auto-detect Docker vs local)
+// ==========================================
+const isDocker = (window.location.protocol === 'http:' || window.location.protocol === 'https:') && (window.location.port === '' || window.location.port === '80' || window.location.port === '443');
+const API_BASE = isDocker ? '/api' : 'http://localhost';
+
 const SERVICES = {
-    reception: 'http://localhost:8081/api',
-    housekeeping: 'http://localhost:8082/api',
-    roomservice: 'http://localhost:8083/api',
-    maintenance: 'http://localhost:8084/api',
+    reception:    isDocker ? `${API_BASE}` : `${API_BASE}:8081/api`,
+    housekeeping: isDocker ? `${API_BASE}` : `${API_BASE}:8082/api`,
+    roomservice:  isDocker ? `${API_BASE}` : `${API_BASE}:8083/api`,
+    maintenance:  isDocker ? `${API_BASE}` : `${API_BASE}:8084/api`,
 };
-const WS_URL = 'http://localhost:8081/ws';
+const WS_URL = isDocker ? '/ws' : `${API_BASE}:8081/ws`;
 
 // ==========================================
 // State
@@ -16,6 +22,7 @@ const WS_URL = 'http://localhost:8081/ws';
 let currentPage = 'dashboard';
 let stompClient = null;
 let activityLog = [];
+let sidebarCollapsed = false;
 
 // ==========================================
 // API Client
@@ -67,13 +74,45 @@ async function login(username, password) {
 function logout() {
     localStorage.removeItem('hotelos_auth');
     document.getElementById('app').style.display = 'none';
-    document.getElementById('login-page').classList.add('active');
-    document.getElementById('login-page').style.display = 'block';
+    const loginPage = document.getElementById('login-page');
+    loginPage.style.display = 'flex';
+    loginPage.classList.add('active');
     disconnectWebSocket();
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
 }
 
 function isAuthenticated() {
     return localStorage.getItem('hotelos_auth') === 'true';
+}
+
+// ==========================================
+// Sidebar Toggle
+// ==========================================
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const isMobile = window.innerWidth <= 768;
+
+    if (isMobile) {
+        sidebar.classList.toggle('open');
+        // Toggle overlay
+        let overlay = document.querySelector('.sidebar-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.className = 'sidebar-overlay';
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('open');
+                overlay.remove();
+            });
+            document.body.appendChild(overlay);
+        } else {
+            overlay.remove();
+        }
+    } else {
+        sidebarCollapsed = !sidebarCollapsed;
+        sidebar.classList.toggle('collapsed');
+        document.querySelector('.main-content').classList.toggle('sidebar-collapsed');
+    }
 }
 
 // ==========================================
@@ -89,6 +128,14 @@ function navigateTo(page) {
 
     const navEl = document.querySelector(`[data-page="${page}"]`);
     if (navEl) navEl.classList.add('active');
+
+    // Close sidebar on mobile after navigation
+    if (window.innerWidth <= 768) {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.remove('open');
+        const overlay = document.querySelector('.sidebar-overlay');
+        if (overlay) overlay.remove();
+    }
 
     loadPageData(page);
 }
@@ -117,6 +164,12 @@ async function loadDashboard() {
         document.getElementById('stat-dirty').textContent = stats.dirtyRooms || 0;
         document.getElementById('stat-active-guests').textContent = stats.activeGuests || 0;
 
+        // Load maintenance count for dashboard
+        try {
+            const maintIssues = await api.get('maintenance', '/maintenance/requests/active');
+            document.getElementById('stat-maintenance').textContent = maintIssues.length || 0;
+        } catch (e) { /* non-critical */ }
+
         // Load rooms for dashboard view
         const rooms = await api.get('reception', '/reception/rooms');
         const roomsHtml = rooms.slice(0, 10).map(room => `
@@ -134,6 +187,8 @@ async function loadDashboard() {
         renderActivityLog();
     } catch (e) {
         console.error('Dashboard load error:', e);
+        document.getElementById('dashboard-rooms-list').innerHTML =
+            `<p class="empty-state error-text">Failed to load dashboard data</p>`;
     }
 }
 
@@ -206,6 +261,8 @@ async function loadRooms(filter = '') {
         `).join('');
     } catch (e) {
         console.error('Rooms load error:', e);
+        document.getElementById('rooms-grid').innerHTML =
+            '<p class="empty-state error-text">Failed to load rooms</p>';
     }
 }
 
@@ -273,6 +330,8 @@ async function loadActiveGuests() {
         `).join('');
     } catch (e) {
         console.error('Active guests load error:', e);
+        document.getElementById('checkout-guests').innerHTML =
+            '<p class="empty-state error-text">Failed to load active guests</p>';
     }
 }
 
@@ -345,6 +404,8 @@ async function loadHousekeepingTasks(filter = '') {
         `).join('');
     } catch (e) {
         console.error('Housekeeping load error:', e);
+        document.getElementById('housekeeping-tasks').innerHTML =
+            '<p class="empty-state error-text">Failed to load housekeeping tasks</p>';
     }
 }
 
@@ -399,6 +460,8 @@ async function loadRoomServiceOrders() {
         `).join('');
     } catch (e) {
         console.error('Orders load error:', e);
+        document.getElementById('roomservice-orders').innerHTML =
+            '<p class="empty-state error-text">Failed to load room service orders</p>';
     }
 }
 
@@ -469,9 +532,12 @@ async function loadMaintenanceIssues() {
         `).join('');
 
         // Update dashboard maintenance count
-        document.getElementById('stat-maintenance').textContent = issues.length;
+        const statEl = document.getElementById('stat-maintenance');
+        if (statEl) statEl.textContent = issues.length;
     } catch (e) {
         console.error('Maintenance load error:', e);
+        document.getElementById('maintenance-issues').innerHTML =
+            '<p class="empty-state error-text">Failed to load maintenance issues</p>';
     }
 }
 
@@ -606,6 +672,13 @@ function updateWSStatus(connected) {
     }
 }
 
+function disconnectWebSocket() {
+    if (stompClient) {
+        try { stompClient.disconnect(); } catch (e) { /* ignore */ }
+        stompClient = null;
+    }
+}
+
 // ==========================================
 // Helpers
 // ==========================================
@@ -628,17 +701,35 @@ function getStatusColor(status) {
 // Init
 // ==========================================
 document.addEventListener('DOMContentLoaded', function () {
+    // Check if already authenticated
+    if (isAuthenticated()) {
+        document.getElementById('login-page').style.display = 'none';
+        document.getElementById('app').style.display = 'flex';
+        connectWebSocket();
+        navigateTo('dashboard');
+    } else {
+        document.getElementById('login-page').style.display = 'flex';
+    }
+
     // Login form
     document.getElementById('login-form').addEventListener('submit', async function (e) {
         e.preventDefault();
         const errEl = document.getElementById('login-error');
+        const btn = this.querySelector('button[type="submit"]');
         errEl.style.display = 'none';
+
+        // Loading state
+        const origText = btn.textContent;
+        btn.textContent = 'Signing in...';
+        btn.disabled = true;
+
         try {
             const res = await login(
                 document.getElementById('username').value,
                 document.getElementById('password').value
             );
             if (res.success) {
+                localStorage.setItem('hotelos_auth', 'true');
                 document.getElementById('login-page').style.display = 'none';
                 document.getElementById('app').style.display = 'flex';
                 connectWebSocket();
@@ -650,6 +741,9 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (e) {
             errEl.textContent = e.message;
             errEl.style.display = 'block';
+        } finally {
+            btn.textContent = origText;
+            btn.disabled = false;
         }
     });
 
@@ -661,11 +755,19 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // Sidebar toggle
+    document.getElementById('sidebar-toggle').addEventListener('click', toggleSidebar);
+
+    // Mobile menu toggle
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', toggleSidebar);
+    }
+
     // Logout
     document.getElementById('logout-btn').addEventListener('click', function () {
-        if (stompClient) stompClient.disconnect();
-        document.getElementById('app').style.display = 'none';
-        document.getElementById('login-page').style.display = 'flex';
+        disconnectWebSocket();
+        logout();
     });
 
     // Room filter
@@ -704,5 +806,22 @@ document.addEventListener('DOMContentLoaded', function () {
         modal.addEventListener('click', function (e) {
             if (e.target === this) this.style.display = 'none';
         });
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+        }
+    });
+
+    // Responsive sidebar - close on resize
+    window.addEventListener('resize', function () {
+        if (window.innerWidth > 768) {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.remove('open');
+            const overlay = document.querySelector('.sidebar-overlay');
+            if (overlay) overlay.remove();
+        }
     });
 });

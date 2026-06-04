@@ -1,5 +1,5 @@
 /* ==========================================
-   HotelOS - Dashboard Charts (Optional Enhancement)
+   HotelOS - Dashboard Charts (Monochrome)
    ========================================== */
 
 // Simple room status bar chart using pure CSS/HTML
@@ -7,9 +7,9 @@ function renderRoomStatusChart(stats) {
     const total = stats.totalRooms || 1;
     const data = [
         { label: 'Available', value: stats.availableRooms || 0, color: '#22c55e' },
-        { label: 'Occupied', value: stats.occupiedRooms || 0, color: '#f59e0b' },
+        { label: 'Occupied', value: stats.occupiedRooms || 0, color: '#ffffff' },
         { label: 'Dirty', value: stats.dirtyRooms || 0, color: '#ef4444' },
-        { label: 'Cleaning', value: stats.cleaningRooms || 0, color: '#3b82f6' },
+        { label: 'Cleaning', value: stats.cleaningRooms || 0, color: '#737373' },
         { label: 'Out of Order', value: stats.outOfOrderRooms || 0, color: '#f97316' },
     ];
 
